@@ -5,7 +5,8 @@ from __future__ import print_function
 
 class SortAlgorithm(object):
     def __init__(self, vals):
-        self.vals = vals
+        self.vals = list(vals)
+        self.N = len(vals)
 
         self.xchgs = 0
         self.compares = 0
@@ -32,12 +33,18 @@ class SortAlgorithm(object):
 
 class InsertionSort(SortAlgorithm):
     def insert_sort(self):
-        N = len(self.vals)
-        for i in range(0, N):
+        for i in range(0, self.N):
             for j in range(i, 0, -1):
                 if not self.less(self.vals[j], self.vals[j-1]):
                     break
                 self.xchg(j, j-1)
+
+class SelectionSort(SortAlgorithm):
+    def selection_sort(self):
+        for i in range(0, self.N):
+            for j in range(i+1, self.N):
+                if not self.less(self.vals[i], self.vals[j]):
+                    self.xchg(i, j)
 
 def main():
     # Generar arrays de prueba
@@ -86,6 +93,22 @@ def main():
 
         print(format_result(u'{0}'.format(N), time_diff(t0, tf)))
 
+    def measure_select(items):
+        N = len(items)
+        selsort = SelectionSort(items)
+        t0 = time.time()
+        selsort.selection_sort()
+        tf = time.time()
+
+        stats.append({
+            'n': N,
+            'xchgs': selsort.xchgs,
+            'compares': selsort.compares
+        })
+
+        print(format_result(u'{0}'.format(N), time_diff(t0, tf)))
+
+
     print("Measuring insertion sort:")
 
     measure_insert(s10)
@@ -96,9 +119,29 @@ def main():
     measure_insert(s7000)
 
     print()
+    print("Insertion sort stats:")
     print('{0:<8} {1:<15} {2:<15}'.format('N', 'Exchanges', 'Compares'))
 
-    print("Insertion sort stats:")
+    for stat in stats:
+        print('{0:<8} {1:<15} {2:<15}'.format(stat['n'], stat['xchgs'], stat['compares']))
+
+    stats = list()
+
+    print()
+    print("Measuring selection sort:")
+
+    measure_select(s10)
+    measure_select(s30)
+    measure_select(s70)
+    measure_select(s1000)
+    measure_select(s3000)
+    measure_select(s7000)
+
+    print()
+
+    print("Selection sort stats:")
+    print('{0:<8} {1:<15} {2:<15}'.format('N', 'Exchanges', 'Compares'))
+
     for stat in stats:
         print('{0:<8} {1:<15} {2:<15}'.format(stat['n'], stat['xchgs'], stat['compares']))
 
