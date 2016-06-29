@@ -46,6 +46,42 @@ class SelectionSort(SortAlgorithm):
                 if not self.less(self.vals[i], self.vals[j]):
                     self.xchg(i, j)
 
+class MergeSort(SortAlgorithm):
+    def __init__(self, vals):
+        super(MergeSort, self).__init__(vals)
+        self.aux = [None] * self.N
+
+    def _merge(self, a, lo, mid, hi):
+        i = lo
+        j = mid+1
+
+        for k in range(lo, hi+1):
+            self.aux[k] = a[k]
+
+        for k in range(lo, hi+1):
+            if i > mid:
+                a[k] = a[j]
+                j = j + 1
+            elif j > hi:
+                a[k] = a[i]
+                i = i + 1
+            elif self.less(self.aux[j], self.aux[i]):
+                a[k] = a[j]
+                j = j + 1
+            else:
+                a[k] = a[i]
+                i = i + 1
+
+    def merge_sort(self):
+        self._merge_sort(self.vals, 0, self.N-1)
+
+    def _merge_sort(self, a, lo, hi):
+        if (hi <= lo): return
+        mid = lo + (hi - lo)/2
+        self._merge_sort(a, lo, mid)
+        self._merge_sort(a, mid+1, hi)
+        self._merge(a, lo, mid, hi)
+
 def main():
     # Generar arrays de prueba
     import random
@@ -56,12 +92,15 @@ def main():
 
 
     t0 = time.time()
+
     s10 = genrandom(10)
     s30 = genrandom(30)
     s70 = genrandom(70)
     s1000 = genrandom(1000)
     s3000 = genrandom(3000)
     s7000 = genrandom(7000)
+    s500000 = genrandom(500000)
+
     tf = time.time()
 
     RESULTS_FMT = u'{0:<8} {1}'
@@ -76,9 +115,7 @@ def main():
     print(format_result(u'Random sequence generation time:', time_diff(t0, tf)))
     print()
 
-    stats = []
-
-    def measure_insert(items):
+    def measure_insert(items, stats):
         N = len(items)
         insort = InsertionSort(items)
         t0 = time.time()
@@ -93,7 +130,7 @@ def main():
 
         print(format_result(u'{0}'.format(N), time_diff(t0, tf)))
 
-    def measure_select(items):
+    def measure_select(items, stats):
         N = len(items)
         selsort = SelectionSort(items)
         t0 = time.time()
@@ -108,41 +145,46 @@ def main():
 
         print(format_result(u'{0}'.format(N), time_diff(t0, tf)))
 
+    def measure_merge(items, stats):
+        N = len(items)
+        mergesort = MergeSort(items)
+        t0 = time.time()
+        mergesort.merge_sort()
+        tf = time.time()
 
-    print("Measuring insertion sort:")
+        stats.append({
+            'n': N,
+            'xchgs': mergesort.xchgs,
+            'compares': mergesort.compares
+        })
 
-    measure_insert(s10)
-    measure_insert(s30)
-    measure_insert(s70)
-    measure_insert(s1000)
-    measure_insert(s3000)
-    measure_insert(s7000)
+        print(format_result(u'{0}'.format(N), time_diff(t0, tf)))
+
+    def measure_algorithm(alg_func, label):
+        stats = list()
+        print(u"Measuring {0}:".format(label))
+
+        for var in [s10, s30, s70, s1000, s3000, s7000, s500000]:
+        #for var in [s10, s30, s70, s1000, s3000]:
+            alg_func(var, stats)
+
+        print()
+
+        print(u"{0} stats:".format(label))
+        print('{0:<8} {1:<15} {2:<15}'.format('N', 'Exchanges', 'Compares'))
+
+        for stat in stats:
+            print('{0:<8} {1:<15} {2:<15}'.format(stat['n'], stat['xchgs'], stat['compares']))
+
+
+#    measure_algorithm(measure_insert, 'insertion sort')
+#
+#    print()
+#    measure_algorithm(measure_select, 'selection sort')
 
     print()
-    print("Insertion sort stats:")
-    print('{0:<8} {1:<15} {2:<15}'.format('N', 'Exchanges', 'Compares'))
+    measure_algorithm(measure_merge, 'merge sort')
 
-    for stat in stats:
-        print('{0:<8} {1:<15} {2:<15}'.format(stat['n'], stat['xchgs'], stat['compares']))
 
-    stats = list()
-
-    print()
-    print("Measuring selection sort:")
-
-    measure_select(s10)
-    measure_select(s30)
-    measure_select(s70)
-    measure_select(s1000)
-    measure_select(s3000)
-    measure_select(s7000)
-
-    print()
-
-    print("Selection sort stats:")
-    print('{0:<8} {1:<15} {2:<15}'.format('N', 'Exchanges', 'Compares'))
-
-    for stat in stats:
-        print('{0:<8} {1:<15} {2:<15}'.format(stat['n'], stat['xchgs'], stat['compares']))
 
 if __name__ == '__main__': main()
