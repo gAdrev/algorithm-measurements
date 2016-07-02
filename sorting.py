@@ -3,6 +3,8 @@
 
 from __future__ import print_function
 
+import collections
+
 class SortAlgorithm(object):
     def __init__(self, vals):
         self.vals = list(vals)
@@ -32,7 +34,7 @@ class SortAlgorithm(object):
         return True
 
 class InsertionSort(SortAlgorithm):
-    def insert_sort(self):
+    def sort(self):
         for i in range(0, self.N):
             for j in range(i, 0, -1):
                 if not self.less(self.vals[j], self.vals[j-1]):
@@ -40,7 +42,7 @@ class InsertionSort(SortAlgorithm):
                 self.xchg(j, j-1)
 
 class SelectionSort(SortAlgorithm):
-    def selection_sort(self):
+    def sort(self):
         for i in range(0, self.N):
             for j in range(i+1, self.N):
                 if not self.less(self.vals[i], self.vals[j]):
@@ -60,27 +62,29 @@ class MergeSort(SortAlgorithm):
 
         for k in range(lo, hi+1):
             if i > mid:
-                a[k] = a[j]
+                a[k] = self.aux[j]
                 j = j + 1
             elif j > hi:
-                a[k] = a[i]
+                a[k] = self.aux[i]
                 i = i + 1
             elif self.less(self.aux[j], self.aux[i]):
-                a[k] = a[j]
+                a[k] = self.aux[j]
                 j = j + 1
             else:
-                a[k] = a[i]
+                a[k] = self.aux[i]
                 i = i + 1
 
-    def merge_sort(self):
-        self._merge_sort(self.vals, 0, self.N-1)
+    def sort(self):
+        #import pdb; pdb.set_trace()
+        self._sort(self.vals, 0, self.N-1)
 
-    def _merge_sort(self, a, lo, hi):
+    def _sort(self, a, lo, hi):
         if (hi <= lo): return
         mid = lo + (hi - lo)/2
-        self._merge_sort(a, lo, mid)
-        self._merge_sort(a, mid+1, hi)
+        self._sort(a, lo, mid)
+        self._sort(a, mid+1, hi)
         self._merge(a, lo, mid, hi)
+
 
 def main():
     # Generar arrays de prueba
@@ -93,13 +97,11 @@ def main():
 
     t0 = time.time()
 
-    s10 = genrandom(10)
-    s30 = genrandom(30)
-    s70 = genrandom(70)
-    s1000 = genrandom(1000)
-    s3000 = genrandom(3000)
-    s7000 = genrandom(7000)
-    s500000 = genrandom(500000)
+    sizes = [10, 30, 70, 1000, 3000]
+    samples = collections.OrderedDict()
+
+    for size in sizes:
+        samples[size] = genrandom(size)
 
     tf = time.time()
 
@@ -109,6 +111,20 @@ def main():
         return (tf-t0)*1000
 
     def format_result(label, value):
+        for k in range(lo, hi+1):
+            if i > mid:
+                a[k] = a[j]
+                j = j + 1
+            elif j > hi:
+                a[k] = a[i]
+                i = i + 1
+            elif self.less(self.aux[j], self.aux[i]):
+                a[k] = a[j]
+                j = j + 1
+            else:
+                a[k] = a[i]
+                i = i + 1
+
         value = '{0:.2f} ms'.format(value)
         return RESULTS_FMT.format(label, value)
 
@@ -119,7 +135,7 @@ def main():
         N = len(items)
         insort = InsertionSort(items)
         t0 = time.time()
-        insort.insert_sort()
+        insort.sort()
         tf = time.time()
 
         stats.append({
@@ -134,7 +150,7 @@ def main():
         N = len(items)
         selsort = SelectionSort(items)
         t0 = time.time()
-        selsort.selection_sort()
+        selsort.sort()
         tf = time.time()
 
         stats.append({
@@ -149,7 +165,7 @@ def main():
         N = len(items)
         mergesort = MergeSort(items)
         t0 = time.time()
-        mergesort.merge_sort()
+        mergesort.sort()
         tf = time.time()
 
         stats.append({
@@ -164,8 +180,7 @@ def main():
         stats = list()
         print(u"Measuring {0}:".format(label))
 
-        for var in [s10, s30, s70, s1000, s3000, s7000, s500000]:
-        #for var in [s10, s30, s70, s1000, s3000]:
+        for var in samples.values():
             alg_func(var, stats)
 
         print()
@@ -177,10 +192,10 @@ def main():
             print('{0:<8} {1:<15} {2:<15}'.format(stat['n'], stat['xchgs'], stat['compares']))
 
 
-#    measure_algorithm(measure_insert, 'insertion sort')
-#
-#    print()
-#    measure_algorithm(measure_select, 'selection sort')
+    measure_algorithm(measure_insert, 'insertion sort')
+
+    print()
+    measure_algorithm(measure_select, 'selection sort')
 
     print()
     measure_algorithm(measure_merge, 'merge sort')
