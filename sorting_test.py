@@ -34,5 +34,12 @@ class TestSorting(unittest.TestCase):
         self.assertTrue(ms.is_sorted())
         self.assertEqual(expected, ms.vals)
 
+    def test_quicksort(self):
+        qs = sorting.QuickSort(sample)
+        qs.sort()
+
+        self.assertTrue(qs.is_sorted())
+        self.assertEqual(expected, qs.vals)
+
 if __name__ == '__main__':
     unittest.main()
