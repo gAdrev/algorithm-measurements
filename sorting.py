@@ -50,7 +50,49 @@ class SelectionSort(SortAlgorithm):
 
 class MergeSort(SortAlgorithm):
     def __init__(self, vals):
+        raise Exception('Use a particular implementation')
+
+    def _merge(self, a, lo, mid, hi):
+        i = lo
+        j = mid+1
+
+        for k in range(lo, hi+1):
+            self.aux[k] = a[k]
+
+        for k in range(lo, hi+1):
+            if i > mid:
+                a[k] = self.aux[j]
+                j = j + 1
+            elif j > hi:
+                a[k] = self.aux[i]
+                i = i + 1
+            elif self.less(self.aux[j], self.aux[i]):
+                a[k] = self.aux[j]
+                j = j + 1
+            else:
+                a[k] = self.aux[i]
+                i = i + 1
+
+
+
+class MergeSortTD(MergeSort):
+    def __init__(self, vals):
         super(MergeSort, self).__init__(vals)
+        self.aux = [None] * self.N
+
+    def sort(self):
+        self._sort(self.vals, 0, self.N-1)
+
+    def _sort(self, a, lo, hi):
+        if (hi <= lo): return
+        mid = lo + (hi - lo)/2
+        self._sort(a, lo, mid)
+        self._sort(a, mid+1, hi)
+        self._merge(a, lo, mid, hi)
+
+class MergeSortBU(SortAlgorithm):
+    def __init__(self, vals):
+        super(MergeSortBU, self).__init__(vals)
         self.aux = [None] * self.N
 
     def _merge(self, a, lo, mid, hi):
@@ -75,16 +117,19 @@ class MergeSort(SortAlgorithm):
                 i = i + 1
 
     def sort(self):
-        #import pdb; pdb.set_trace()
         self._sort(self.vals, 0, self.N-1)
 
     def _sort(self, a, lo, hi):
-        if (hi <= lo): return
-        mid = lo + (hi - lo)/2
-        self._sort(a, lo, mid)
-        self._sort(a, mid+1, hi)
-        self._merge(a, lo, mid, hi)
-
+        print("_sort: ", a)
+        sz = 1
+        while sz < self.N:
+            lo = 0
+            while lo < self.N - sz:
+                self._merge(a, lo, lo+sz-1, min(lo + 2*sz - 1, self.N - 1))
+                #print("after merge of sz = {0}: {1}".format(sz, a))
+                print(a)
+                lo += 2*sz
+            sz = 2*sz
 
 def main():
     # Generar arrays de prueba
@@ -97,7 +142,7 @@ def main():
 
     t0 = time.time()
 
-    sizes = [10, 30, 70, 1000, 3000]
+    sizes = [10, 30, 70, 1000, 2000]
     samples = collections.OrderedDict()
 
     for size in sizes:
@@ -111,20 +156,6 @@ def main():
         return (tf-t0)*1000
 
     def format_result(label, value):
-        for k in range(lo, hi+1):
-            if i > mid:
-                a[k] = a[j]
-                j = j + 1
-            elif j > hi:
-                a[k] = a[i]
-                i = i + 1
-            elif self.less(self.aux[j], self.aux[i]):
-                a[k] = a[j]
-                j = j + 1
-            else:
-                a[k] = a[i]
-                i = i + 1
-
         value = '{0:.2f} ms'.format(value)
         return RESULTS_FMT.format(label, value)
 
@@ -163,7 +194,22 @@ def main():
 
     def measure_merge(items, stats):
         N = len(items)
-        mergesort = MergeSort(items)
+        mergesort = MergeSortTD(items)
+        t0 = time.time()
+        mergesort.sort()
+        tf = time.time()
+
+        stats.append({
+            'n': N,
+            'xchgs': mergesort.xchgs,
+            'compares': mergesort.compares
+        })
+
+        print(format_result(u'{0}'.format(N), time_diff(t0, tf)))
+
+    def measure_mergebu(items, stats):
+        N = len(items)
+        mergesort = MergeSortBU(items)
         t0 = time.time()
         mergesort.sort()
         tf = time.time()
@@ -200,6 +246,8 @@ def main():
     print()
     measure_algorithm(measure_merge, 'merge sort')
 
+    print()
+    measure_algorithm(measure_mergebu, 'merge sort (bottom-up)')
 
 
 if __name__ == '__main__': main()

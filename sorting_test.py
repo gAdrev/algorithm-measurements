@@ -20,8 +20,15 @@ class TestSorting(unittest.TestCase):
         self.assertTrue(s.is_sorted())
         self.assertEqual(expected, s.vals)
 
-    def test_mergesort(self):
-        ms = sorting.MergeSort(sample)
+    def test_mergesorttd(self):
+        ms = sorting.MergeSortTD(sample)
+        ms.sort()
+
+        self.assertTrue(ms.is_sorted())
+        self.assertEqual(expected, ms.vals)
+
+    def test_mergesortbu(self):
+        ms = sorting.MergeSortBU(sample)
         ms.sort()
 
         self.assertTrue(ms.is_sorted())
